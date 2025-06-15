@@ -31,8 +31,10 @@ A real-time multiplayer tic-tac-toe game with AI opponents, built with FastAPI (
 ### Code Quality
 - **Ruff**: Fast Python linter and formatter
 - **pytest**: Testing framework with coverage
+- **Vitest**: Frontend testing framework with coverage
 - **Pre-commit hooks**: Prevent commits with code issues
-- **80% test coverage**: Enforced minimum coverage
+- **80% backend test coverage**: Enforced minimum coverage
+- **30% frontend test coverage**: Enforced minimum coverage
 
 ## Quick Start
 
@@ -213,6 +215,233 @@ SECRET_KEY=your-secret-key-here
 ENVIRONMENT=development
 CORS_ORIGINS=["http://localhost:3000"]
 ```
+
+## Development Workflow & Debugging
+
+### Code Quality & Pre-commit Hooks
+
+This project uses pre-commit hooks to maintain code quality:
+
+```bash
+# Pre-commit hooks automatically run on every commit:
+# ✅ ruff-check      - Python linting
+# ✅ ruff-format     - Python code formatting  
+# ✅ pytest-coverage - Python tests (80% coverage required)
+# ✅ eslint-check    - Frontend TypeScript/React linting
+# ✅ vitest-coverage - Frontend tests (30% coverage required)
+
+# Run all hooks manually:
+pre-commit run --all-files
+
+# Run specific hook:
+pre-commit run ruff-check
+pre-commit run vitest-coverage
+```
+
+### Frontend Testing
+
+The project includes comprehensive frontend testing with Vitest:
+
+#### Vitest Coverage Pre-commit Hook
+
+The `vitest-coverage` pre-commit hook ensures frontend test coverage meets quality standards:
+
+```yaml
+# .pre-commit-config.yaml
+- id: vitest-coverage
+  name: vitest-coverage
+  entry: bash -c 'cd public && npx vitest run --coverage'
+  language: system
+  files: ^public/.*\.(js|jsx|ts|tsx)$
+  require_serial: true
+```
+
+**Key Features:**
+- **Non-interactive mode**: Uses `vitest run` to prevent hanging in CI/pre-commit
+- **Coverage enforcement**: Requires minimum 30% frontend coverage
+- **Automatic execution**: Runs on every commit that touches frontend files
+- **Parallel safety**: Uses `require_serial: true` to prevent conflicts
+
+#### Running Frontend Tests
+
+```bash
+# Quick test run (used by pre-commit hook):
+cd public && npx vitest run --coverage
+
+# Development workflow:
+cd public
+npm run test                       # Interactive watch mode
+npm run test:coverage              # Coverage report with watch
+npm run test:coverage -- --run     # One-time coverage report
+npm run test:ui                    # Visual UI for tests
+
+# Test specific files:
+npx vitest run src/__tests__/LoginForm.test.tsx
+npx vitest run src/__tests__/apiService.test.ts
+```
+
+#### Coverage Requirements
+
+- **Minimum Coverage**: 30% overall frontend coverage
+- **Covered Components**: LoginForm, Navigation, API services, utility functions
+- **Test Types**: Unit tests, component tests, integration tests
+- **Reports**: HTML coverage reports generated in `public/coverage/`
+
+#### Test Structure
+
+```
+public/src/__tests__/
+├── LoginForm.test.tsx        # Component testing (form interactions)
+├── Navigation.test.tsx       # Component testing (navigation logic)
+├── apiService.test.ts        # API service testing (HTTP calls)
+├── useAuthStore.test.ts      # Hook testing (Zustand store)
+├── helpers.test.ts           # Utility function testing
+└── utilityHelpers.test.ts    # Additional helper functions
+```
+
+#### Troubleshooting Frontend Tests
+
+**Pre-commit hook hanging:**
+```bash
+# Fixed: Was using 'vitest' instead of 'vitest run'
+# vitest runs in watch mode by default, causing pre-commit to hang
+# Solution: Always use 'vitest run' for non-interactive execution
+```
+
+**Coverage below 30%:**
+```bash
+# Check current coverage:
+cd public && npx vitest run --coverage
+
+# Add more tests to increase coverage:
+# Focus on: components, services, hooks, utilities
+```
+
+**Mock setup issues:**
+```bash
+# Ensure proper mocking in test files:
+vi.mock('../services/api', () => ({
+    default: {
+        login: vi.fn(),
+        setAuthToken: vi.fn(),
+    },
+}));
+```
+
+### VS Code Debugging Setup
+
+Complete VS Code debugging configuration is provided:
+
+1. **Container Debugging**: Debug the FastAPI backend running in Docker
+2. **Local Debugging**: Debug Python code running locally
+3. **Frontend Debugging**: Debug React components and TypeScript
+
+**Available debug configurations:**
+- `Python: Debug Backend (Container)` - Attach to running Docker container
+- `Python: Debug Backend (Local)` - Debug local Python process
+- `TypeScript: Debug Frontend` - Debug React app in Chrome
+
+**VS Code Tasks:**
+- `Start Debug Container` - Launch containers with debugpy
+- `Stop Debug Container` - Stop all containers
+- `Build Backend (Debug)` - Rebuild backend with debug support
+- `View Backend Logs` - Monitor backend container logs
+
+### Development Environment
+
+**Hot Reload Setup:**
+```bash
+# Start development environment with hot reload:
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+# Backend: Automatic reload via uvicorn --reload
+# Frontend: Automatic reload via Vite HMR
+# Database: Persistent volumes for data
+```
+
+**Port Configuration:**
+- `3000` - Frontend development server (Vite)
+- `8000` - Backend API (FastAPI)
+- `8080` - Production preview (Nginx)
+- `5432` - PostgreSQL database
+- `6379` - Redis cache
+- `5678` - Python debugger (debugpy)
+
+**Volume Mounting:**
+- `./app:/app/app:rw` - Backend source code
+- `./public:/app/public:rw` - Frontend source code
+- Database and Redis data persist in Docker volumes
+
+### Debugging Workflow
+
+1. **Set breakpoints** in VS Code
+2. **Start debug container**: `Ctrl+Shift+P` → `Tasks: Run Task` → `Start Debug Container`
+3. **Attach debugger**: `F5` → Select debug configuration
+4. **Make requests** to trigger breakpoints
+5. **Inspect variables** and step through code
+
+### Testing Strategy
+
+**Backend Testing (80% coverage required):**
+```bash
+# Run specific test files:
+pytest tests/test_ai_service.py -v
+pytest tests/test_game_logic.py -v
+
+# Run with coverage:
+pytest --cov=app --cov-report=html
+# View coverage: open htmlcov/index.html
+```
+
+**Frontend Testing (30% coverage required):**
+```bash
+# Test specific components:
+cd public
+npm test -- --run src/__tests__/Navigation.test.tsx
+npm test -- --run src/__tests__/helpers.test.ts
+
+# Coverage report:
+npm run test:coverage -- --run
+# View coverage: open public/coverage/index.html
+
+# Current coverage: 30.71% (exceeds requirement)
+```
+
+**Pre-commit Testing:**
+```bash
+# Automatically runs on commit:
+# - Backend: pytest with 80% coverage minimum
+# - Frontend: vitest with 30% coverage minimum
+# - Linting: ruff (Python) + eslint (TypeScript)
+
+# Manual execution:
+pre-commit run --all-files
+```
+
+**Integration Testing:**
+```bash
+# Test Docker setup:
+./test-docker.sh
+
+# Test authentication:
+python test_auth.py
+```
+
+### Common Development Issues
+
+**"Failed to load games" error:**
+- ✅ Fixed: Enum mismatch in database queries
+- Games endpoint now uses string values instead of enum names
+
+**Pre-commit hooks failing:**
+- Python issues: Check `uv` virtual environment activation
+- Frontend issues: Run `cd public && npx vitest run --coverage` to test manually
+- Coverage issues: Ensure tests cover 30% frontend and 80% backend coverage
+
+**Docker debugging not working:**
+- Ensure debugpy port (5678) is exposed
+- Check volume mounts are correct
+- Verify containers are running: `docker ps`
 
 ## Contributing
 
