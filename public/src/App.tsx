@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
-import { useAuthStore } from './hooks/useAuthStore';
-import { useWebSocket } from './hooks/useWebSocket';
+import { useEffect, useState } from 'react';
 import LoginForm from './components/Auth/LoginForm';
-import GameLobby from './components/GameLobby';
+import ErrorBoundary from './components/ErrorBoundary';
 import GameBoard from './components/GameBoard';
+import GameLobby from './components/GameLobby';
 import Leaderboard from './components/Leaderboard';
 import Navigation from './components/Navigation';
-import ErrorBoundary from './components/ErrorBoundary';
+import { useAuthStore } from './hooks/useAuthStore';
+import { useWebSocket } from './hooks/useWebSocket';
 
 function App() {
   const { user, isAuthenticated, checkAuth } = useAuthStore();
@@ -50,19 +50,19 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Navigation 
-        currentView={currentView} 
+      <Navigation
+        currentView={currentView}
         setCurrentView={setCurrentView}
         user={user}
         isConnected={isConnected}
       />
-      
+
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
           {currentView === 'lobby' && (
             <GameLobby onJoinGame={handleJoinGame} />
           )}
-          
+
           {currentView === 'game' && currentGameId && (
             <ErrorBoundary fallback={
               <div className="text-center py-12">
@@ -80,13 +80,13 @@ function App() {
                 </button>
               </div>
             }>
-              <GameBoard 
-                gameId={currentGameId} 
+              <GameBoard
+                gameId={currentGameId}
                 onLeaveGame={handleLeaveGame}
               />
             </ErrorBoundary>
           )}
-          
+
           {currentView === 'leaderboard' && (
             <Leaderboard />
           )}

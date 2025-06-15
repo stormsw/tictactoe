@@ -1,0 +1,124 @@
+name: Coverage Badge
+
+on:
+  push:
+    branches: [master]
+  schedule:
+    # Update badge daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  coverage-badge:
+    name: Update Coverage Badge
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: public/package-lock.json
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install backend dependencies
+        run: uv sync --dev
+
+      - name: Install frontend dependencies
+        working-directory: ./public
+        run: npm ci
+
+      - name: Generate backend coverage
+        run: |
+          uv run pytest --cov=app --cov-report=json tests/
+          BACKEND_COV=$(python -c "import json; print(json.load(open('coverage.json'))['totals']['percent_covered'])")
+          echo "BACKEND_COVERAGE=$BACKEND_COV" >> $GITHUB_ENV
+
+      - name: Generate frontend coverage
+        working-directory: ./public
+        run: |
+          npm run test:coverage -- --reporter=json --outputFile=coverage-summary.json --run
+          FRONTEND_COV=$(node -e "const fs = require('fs'); const cov = JSON.parse(fs.readFileSync('coverage/coverage-summary.json')); console.log(cov.total.lines.pct)")
+          echo "FRONTEND_COVERAGE=$FRONTEND_COV" >> $GITHUB_ENV
+
+      - name: Create coverage badges
+        run: |
+          mkdir -p badges
+          
+          # Backend badge
+          BACKEND_COLOR="red"
+          if (( $(echo "$BACKEND_COVERAGE >= 80" | bc -l) )); then
+            BACKEND_COLOR="brightgreen"
+          elif (( $(echo "$BACKEND_COVERAGE >= 60" | bc -l) )); then
+            BACKEND_COLOR="yellow"
+          fi
+          
+          # Frontend badge  
+          FRONTEND_COLOR="red"
+          if (( $(echo "$FRONTEND_COVERAGE >= 80" | bc -l) )); then
+            FRONTEND_COLOR="brightgreen"
+          elif (( $(echo "$FRONTEND_COVERAGE >= 30" | bc -l) )); then
+            FRONTEND_COLOR="yellow"
+          fi
+          
+          # Calculate combined coverage (weighted average)
+          COMBINED_COV=$(echo "scale=1; ($BACKEND_COVERAGE + $FRONTEND_COVERAGE) / 2" | bc)
+          
+          COMBINED_COLOR="red"
+          if (( $(echo "$COMBINED_COV >= 70" | bc -l) )); then
+            COMBINED_COLOR="brightgreen"
+          elif (( $(echo "$COMBINED_COV >= 50" | bc -l) )); then
+            COMBINED_COLOR="yellow"
+          fi
+          
+          # Generate badge URLs
+          echo "BACKEND_BADGE_URL=https://img.shields.io/badge/Backend%20Coverage-${BACKEND_COVERAGE}%25-${BACKEND_COLOR}" >> $GITHUB_ENV
+          echo "FRONTEND_BADGE_URL=https://img.shields.io/badge/Frontend%20Coverage-${FRONTEND_COVERAGE}%25-${FRONTEND_COLOR}" >> $GITHUB_ENV
+          echo "COMBINED_BADGE_URL=https://img.shields.io/badge/Combined%20Coverage-${COMBINED_COV}%25-${COMBINED_COLOR}" >> $GITHUB_ENV
+
+      - name: Update repository with coverage info
+        run: |
+          # Create a coverage summary file
+          cat > coverage-summary.md << 'COVERAGE_EOF'
+          # Coverage Summary
+          
+          Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          
+          ## Current Coverage
+          
+          ![Backend Coverage](${BACKEND_BADGE_URL})
+          ![Frontend Coverage](${FRONTEND_BADGE_URL})
+          ![Combined Coverage](${COMBINED_BADGE_URL})
+          
+          - **Backend (Python)**: ${BACKEND_COVERAGE}% (Target: ≥80%)
+          - **Frontend (TypeScript/React)**: ${FRONTEND_COVERAGE}% (Target: ≥30%)
+          - **Combined Average**: ${COMBINED_COV}%
+          
+          ## Coverage Reports
+          
+          - [View Latest Backend Coverage](https://github.com/${{ github.repository }}/actions/workflows/ci-coverage.yml)
+          - [View Latest Frontend Coverage](https://github.com/${{ github.repository }}/actions/workflows/ci-coverage.yml)
+          - [Coverage Trends on Codecov](https://codecov.io/gh/${{ github.repository }})
+          
+          COVERAGE_EOF
+          
+          # Output for use in other workflows
+          echo "coverage-backend=${BACKEND_COVERAGE}" >> $GITHUB_OUTPUT
+          echo "coverage-frontend=${FRONTEND_COVERAGE}" >> $GITHUB_OUTPUT
+          echo "coverage-combined=${COMBINED_COV}" >> $GITHUB_OUTPUT
+
+      - name: Upload coverage summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-summary
+          path: coverage-summary.md

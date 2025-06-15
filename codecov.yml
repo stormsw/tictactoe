@@ -1,0 +1,50 @@
+codecov:
+  require_ci_to_pass: yes
+  notify:
+    wait_for_ci: yes
+
+coverage:
+  precision: 2
+  round: down
+  range: "70...95"
+
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+        base: auto
+    patch:
+      default:
+        target: auto
+        threshold: 1%
+        base: auto
+
+flags:
+  backend:
+    paths:
+      - app/
+    carryforward: false
+  frontend:
+    paths:
+      - public/src/
+    carryforward: false
+
+comment:
+  layout: "reach,diff,flags,tree,footer"
+  behavior: default
+  require_changes: false
+  require_base: no
+  require_head: yes
+
+github_checks:
+  annotations: true
+
+ignore:
+  - "tests/"
+  - "public/src/__tests__/"
+  - "migrations/"
+  - "htmlcov/"
+  - "public/coverage/"
+  - "*.config.*"
+  - ".github/"

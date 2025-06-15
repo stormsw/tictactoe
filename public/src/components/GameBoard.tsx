@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useWebSocket } from '../hooks/useWebSocket';
+import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../hooks/useAuthStore';
+import { useWebSocket } from '../hooks/useWebSocket';
 import apiService from '../services/api';
 import type { GameData } from '../types';
 
@@ -36,7 +36,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameId, onLeaveGame }) => {
     const gameUpdates = messages.filter(
       msg => msg.type === 'game_update' && msg.data.game_id === gameId
     );
-    
+
     if (gameUpdates.length > 0) {
       const latestUpdate = gameUpdates[gameUpdates.length - 1];
       if (latestUpdate.data.game) {
@@ -50,7 +50,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameId, onLeaveGame }) => {
       setError('');
       const gameData = await apiService.getGame(gameId) as GameData;
       setGame(gameData);
-      
+
       // Check if user is observer
       const isPlayerInGame = gameData.player1_id === Number(user?.id) || gameData.player2_id === Number(user?.id);
       setIsObserver(!isPlayerInGame);
@@ -70,8 +70,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameId, onLeaveGame }) => {
     // Check if it's the current user's turn
     const isPlayer1 = game.player1_id === Number(user?.id);
     const isPlayer2 = game.player2_id === Number(user?.id);
-    const isUserTurn = (game.current_turn === 'X' && isPlayer1) || 
-                       (game.current_turn === 'O' && isPlayer2);
+    const isUserTurn = (game.current_turn === 'X' && isPlayer1) ||
+      (game.current_turn === 'O' && isPlayer2);
 
     if (!isUserTurn) {
       return;
@@ -99,7 +99,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameId, onLeaveGame }) => {
 
   const getCurrentPlayerName = () => {
     if (!game) return '';
-    
+
     if (game.current_turn === 'X') {
       return 'Player 1'; // Could be enhanced to show actual username
     } else {
@@ -138,8 +138,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameId, onLeaveGame }) => {
 
     const isPlayer1 = game.player1_id === Number(user?.id);
     const isPlayer2 = game.player2_id === Number(user?.id);
-    const isUserTurn = (game.current_turn === 'X' && isPlayer1) || 
-                       (game.current_turn === 'O' && isPlayer2);
+    const isUserTurn = (game.current_turn === 'X' && isPlayer1) ||
+      (game.current_turn === 'O' && isPlayer2);
 
     return isUserTurn && game.board_state[position] === '';
   };
@@ -228,9 +228,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameId, onLeaveGame }) => {
           {game.board_state?.map((cell: string, index: number) => (
             <button
               key={`game-${game.id}-cell-${index}`}
-              className={`game-cell ${cell.toLowerCase()} ${
-                canMakeMove(index) ? 'hover:bg-gray-100' : ''
-              }`}
+              className={`game-cell ${cell.toLowerCase()} ${canMakeMove(index) ? 'hover:bg-gray-100' : ''
+                }`}
               onClick={() => makeMove(index)}
               disabled={!canMakeMove(index)}
             >

@@ -217,7 +217,7 @@ describe('App Component', () => {
     });
 
     test('shows disconnected status when WebSocket is not connected', () => {
-        mockUseWebSocket.mockReturnValue({ 
+        mockUseWebSocket.mockReturnValue({
             isConnected: false,
             messages: [],
             sendMessage: vi.fn(),

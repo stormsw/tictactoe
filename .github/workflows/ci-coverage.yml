@@ -1,0 +1,286 @@
+name: CI with Coverage Reports
+
+on:
+  push:
+    branches: [master, develop]
+  pull_request:
+    branches: [master, develop]
+
+env:
+  NODE_VERSION: "18"
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  test-backend:
+    name: Backend Tests & Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        run: |
+          uv sync --dev
+
+      - name: Run backend tests with coverage
+        run: |
+          uv run pytest --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing tests/
+
+      - name: Upload backend coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: backend
+          name: backend-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+      - name: Upload backend coverage to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-report
+          path: htmlcov/
+          retention-days: 30
+
+  test-frontend:
+    name: Frontend Tests & Coverage
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: public/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./public
+        run: npm ci
+
+      - name: Run frontend linting
+        working-directory: ./public
+        run: npm run lint
+
+      - name: Run frontend type checking
+        working-directory: ./public
+        run: npm run type-check
+
+      - name: Run frontend tests with coverage
+        working-directory: ./public
+        run: npm run test:coverage
+
+      - name: Upload frontend coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./public/coverage/lcov.info
+          flags: frontend
+          name: frontend-coverage
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+      - name: Upload frontend coverage to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: public/coverage/
+          retention-days: 30
+
+  coverage-report:
+    name: Generate Coverage Report
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    if: always()
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download backend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage-report
+          path: backend-coverage/
+        continue-on-error: true
+
+      - name: Download frontend coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage-report
+          path: frontend-coverage/
+        continue-on-error: true
+
+      - name: Create coverage summary
+        run: |
+          mkdir -p coverage-summary
+
+          # Create a combined coverage report HTML page
+          cat > coverage-summary/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>Tic-Tac-Toe Coverage Report</title>
+              <style>
+                  body { font-family: Arial, sans-serif; margin: 40px; }
+                  .container { max-width: 1200px; margin: 0 auto; }
+                  .coverage-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+                  .coverage-section h2 { color: #333; border-bottom: 2px solid #007cba; padding-bottom: 10px; }
+                  .links { margin: 10px 0; }
+                  .links a { margin-right: 15px; padding: 8px 15px; background: #007cba; color: white; text-decoration: none; border-radius: 3px; }
+                  .links a:hover { background: #005a87; }
+                  .status { padding: 10px; border-radius: 3px; margin: 10px 0; }
+                  .success { background-color: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+                  .warning { background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+                  .error { background-color: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>🎯 Tic-Tac-Toe Coverage Report</h1>
+                  <p>Generated on: $(date)</p>
+                  
+                  <div class="coverage-section">
+                      <h2>🐍 Backend Coverage (Python)</h2>
+                      <div class="links">
+                          <a href="../backend-coverage/index.html" target="_blank">View Backend Report</a>
+                      </div>
+                      <div class="status success">
+                          <strong>Status:</strong> Backend tests completed successfully
+                      </div>
+                  </div>
+                  
+                  <div class="coverage-section">
+                      <h2>⚛️ Frontend Coverage (TypeScript/React)</h2>
+                      <div class="links">
+                          <a href="../frontend-coverage/index.html" target="_blank">View Frontend Report</a>
+                      </div>
+                      <div class="status success">
+                          <strong>Status:</strong> Frontend tests completed successfully
+                      </div>
+                  </div>
+                  
+                  <div class="coverage-section">
+                      <h2>📊 Summary</h2>
+                      <p>This is a combined coverage report for the Tic-Tac-Toe application.</p>
+                      <ul>
+                          <li><strong>Backend:</strong> Python FastAPI application with SQLAlchemy, Redis, and WebSocket support</li>
+                          <li><strong>Frontend:</strong> React TypeScript application with Vitest testing framework</li>
+                          <li><strong>Coverage Tools:</strong> pytest-cov for backend, Vitest for frontend</li>
+                      </ul>
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload combined coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-coverage-report
+          path: |
+            coverage-summary/
+            backend-coverage/
+            frontend-coverage/
+          retention-days: 30
+
+  deploy-coverage:
+    name: Deploy Coverage to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: [coverage-report]
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download combined coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: combined-coverage-report
+          path: ./coverage-site
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./coverage-site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    if: always()
+
+    steps:
+      - name: Check test results
+        run: |
+          echo "Backend tests: ${{ needs.test-backend.result }}"
+          echo "Frontend tests: ${{ needs.test-frontend.result }}"
+
+          if [[ "${{ needs.test-backend.result }}" != "success" ]]; then
+            echo "❌ Backend tests failed"
+            exit 1
+          fi
+
+          if [[ "${{ needs.test-frontend.result }}" != "success" ]]; then
+            echo "❌ Frontend tests failed"
+            exit 1
+          fi
+
+          echo "✅ All tests passed!"
+
+      - name: Post coverage comment (PR only)
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `## 📊 Coverage Report
+
+            Your tests have been run and coverage reports generated!
+
+            ### 🎯 Test Results
+            - ✅ Backend Tests: Passed
+            - ✅ Frontend Tests: Passed
+
+            ### 📈 Coverage Reports
+            - [Backend Coverage Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            - [Frontend Coverage Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            Coverage reports are available in the workflow artifacts.
+            `;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

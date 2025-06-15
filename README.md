@@ -1,5 +1,9 @@
 # Tic-Tac-Toe Web Application
 
+[![Tests](https://github.com/stormsw/tictactoe/actions/workflows/tests.yml/badge.svg)](https://github.com/stormsw/tictactoe/actions/workflows/tests.yml)
+[![Coverage](https://github.com/stormsw/tictactoe/actions/workflows/ci-coverage.yml/badge.svg)](https://github.com/stormsw/tictactoe/actions/workflows/ci-coverage.yml)
+[![codecov](https://codecov.io/gh/stormsw/tictactoe/branch/master/graph/badge.svg)](https://codecov.io/gh/stormsw/tictactoe)
+
 A real-time multiplayer tic-tac-toe game with AI opponents, built with FastAPI (backend) and React.js (frontend).
 
 ## Features
@@ -476,12 +480,35 @@ python test_auth.py
 - Check volume mounts are correct
 - Verify containers are running: `docker ps`
 
+## 📊 Coverage & CI/CD
+
+This project includes comprehensive automated testing and coverage reporting:
+
+- **Automated Tests**: Run on every push and pull request
+- **Coverage Reports**: Generated for both backend (Python) and frontend (TypeScript)
+- **GitHub Pages**: Coverage reports automatically deployed to GitHub Pages
+- **Codecov Integration**: Track coverage trends and get PR feedback
+
+For detailed setup instructions and troubleshooting, see [COVERAGE.md](COVERAGE.md).
+
+### Quick Coverage Commands
+
+```bash
+# Backend coverage
+uv run pytest --cov=app --cov-report=html
+open htmlcov/index.html
+
+# Frontend coverage
+cd public && npm run test:coverage
+open coverage/index.html
+```
+
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Ensure tests pass and coverage is above 80%
+4. Ensure tests pass and coverage meets requirements (80% backend, 30% frontend)
 5. Submit a pull request
 
 ## License

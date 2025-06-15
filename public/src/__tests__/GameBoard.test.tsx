@@ -57,7 +57,7 @@ describe('GameBoard Component', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         mockGetGame.mockResolvedValue(mockGameData);
-        
+
         // Set up WebSocket mock return value
         mockUseWebSocket.mockReturnValue({
             messages: [],
