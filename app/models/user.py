@@ -1,9 +1,11 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
-from sqlalchemy.sql import func
-from app.database.connection import Base
-from pydantic import BaseModel, ConfigDict
-from typing import Optional
 from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict
+from sqlalchemy import Boolean, Column, DateTime, Integer, String
+from sqlalchemy.sql import func
+
+from app.database.connection import Base
+
 
 class User(Base):
     __tablename__ = "users"
@@ -16,24 +18,29 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
+
 # Pydantic models for API
 class UserBase(BaseModel):
     username: str
     email: str
 
+
 class UserCreate(UserBase):
     password: str
+
 
 class UserResponse(UserBase):
     id: int
     is_active: bool
     created_at: datetime
-    
+
     model_config = ConfigDict(from_attributes=True)
+
 
 class UserLogin(BaseModel):
     username: str
     password: str
+
 
 class Token(BaseModel):
     access_token: str

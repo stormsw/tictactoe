@@ -1,6 +1,5 @@
 import json
 from datetime import datetime
-from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
@@ -8,7 +7,6 @@ from app.models.game import (
     Game,
     GameListItem,
     GameObserver,
-    GameResponse,
     GameStatus,
     PlayerType,
 )
@@ -24,7 +22,7 @@ class GameService:
     def create_game(
         db: Session,
         player1_id: int,
-        player2_id: Optional[int] = None,
+        player2_id: int | None = None,
         player2_type: PlayerType = PlayerType.HUMAN,
     ) -> Game:
         """Create a new game"""
@@ -46,12 +44,12 @@ class GameService:
         return game
 
     @staticmethod
-    def get_game(db: Session, game_id: int) -> Optional[Game]:
+    def get_game(db: Session, game_id: int) -> Game | None:
         """Get game by ID"""
         return db.query(Game).filter(Game.id == game_id).first()
 
     @staticmethod
-    def get_active_games(db: Session, limit: int = 50) -> List[GameListItem]:
+    def get_active_games(db: Session, limit: int = 50) -> list[GameListItem]:
         """Get list of active games"""
         games = (
             db.query(Game)
@@ -95,7 +93,7 @@ class GameService:
         return result
 
     @staticmethod
-    def join_game(db: Session, game_id: int, user_id: int) -> Optional[Game]:
+    def join_game(db: Session, game_id: int, user_id: int) -> Game | None:
         """Join an existing game as player 2"""
         game = GameService.get_game(db, game_id)
         if not game or game.status != GameStatus.WAITING or game.player2_id:
@@ -128,7 +126,7 @@ class GameService:
     @staticmethod
     def make_move(
         db: Session, game_id: int, user_id: int, position: int
-    ) -> tuple[Optional[Game], str]:
+    ) -> tuple[Game | None, str]:
         """Make a move in the game"""
         game = GameService.get_game(db, game_id)
         if not game:
@@ -223,7 +221,7 @@ class GameService:
         return game, "AI move successful"
 
     @staticmethod
-    def _check_winner(board: List[str]) -> Optional[str]:
+    def _check_winner(board: list[str]) -> str | None:
         """Check if there's a winner on the board"""
         winning_combinations = [
             [0, 1, 2],
@@ -243,7 +241,7 @@ class GameService:
         return None
 
     @staticmethod
-    def _is_board_full(board: List[str]) -> bool:
+    def _is_board_full(board: list[str]) -> bool:
         """Check if board is full"""
         return all(cell != "" for cell in board)
 

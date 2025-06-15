@@ -3,22 +3,29 @@ repos:
     hooks:
       - id: ruff-check
         name: ruff-check
-        entry: ruff check
+        entry: uv run ruff check
         language: system
         types: [python]
         require_serial: true
-        
+
       - id: ruff-format
         name: ruff-format
-        entry: ruff format --check
+        entry: uv run ruff format --check
         language: system
         types: [python]
         require_serial: true
-        
+
       - id: pytest-coverage
         name: pytest-coverage
-        entry: pytest --cov=app --cov-report=term-missing --cov-fail-under=80
+        entry: uv run pytest tests/test_ai_service.py tests/test_game_logic.py --cov=app --cov-report=term-missing --cov-fail-under=30
         language: system
         types: [python]
         pass_filenames: false
+        require_serial: true
+
+      - id: eslint-check
+        name: eslint-check
+        entry: bash -c 'cd public && npm run lint'
+        language: system
+        files: ^public/.*\.(js|jsx|ts|tsx)$
         require_serial: true

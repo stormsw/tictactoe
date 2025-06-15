@@ -1,8 +1,8 @@
-from sqlalchemy import create_engine, MetaData
+import os
+
+from sqlalchemy import MetaData, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
-from typing import AsyncGenerator
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./tictactoe.db")
 
@@ -15,6 +15,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 metadata = MetaData()
+
 
 def get_db():
     """Get database session"""

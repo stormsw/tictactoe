@@ -1,9 +1,10 @@
-from sqlalchemy import Column, Integer, Float, ForeignKey, DateTime
+from pydantic import BaseModel
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
 from app.database.connection import Base
-from pydantic import BaseModel
-from datetime import datetime
+
 
 class UserStats(Base):
     __tablename__ = "user_stats"
@@ -23,6 +24,7 @@ class UserStats(Base):
     # Relationships
     user = relationship("User")
 
+
 # Pydantic models
 class UserStatsResponse(BaseModel):
     user_id: int
@@ -35,6 +37,7 @@ class UserStatsResponse(BaseModel):
     win_rate: float
     avg_moves_per_game: float
 
+
 class LeaderboardEntry(BaseModel):
     rank: int
     user_id: int
@@ -45,6 +48,7 @@ class LeaderboardEntry(BaseModel):
     games_drawn: int
     win_rate: float
     avg_moves_per_game: float
+
 
 class LeaderboardResponse(BaseModel):
     entries: list[LeaderboardEntry]
