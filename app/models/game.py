@@ -67,11 +67,17 @@ class GameMove(BaseModel):
 
 
 class GameCreate(BaseModel):
+    class Config:
+        use_enum_values = True
+
     player2_id: int | None = None
     player2_type: PlayerType = PlayerType.HUMAN
 
 
 class GameResponse(BaseModel):
+    class Config:
+        use_enum_values = True
+
     id: int
     player1_id: int
     player2_id: int | None
@@ -105,6 +111,9 @@ class GameResponse(BaseModel):
 
 
 class GameListItem(BaseModel):
+    class Config:
+        use_enum_values = True
+
     id: int
     player1_username: str
     player2_username: str | None

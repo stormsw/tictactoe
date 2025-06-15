@@ -1,5 +1,5 @@
-import { describe, test, expect } from 'vitest';
-import { validateEmail, formatGameTime, getUserDisplayName } from '../utils/helpers';
+import { describe, expect, test } from 'vitest';
+import { formatGameTime, getUserDisplayName, validateEmail } from '../utils/helpers';
 
 describe('Additional Helper Functions', () => {
     test('validateEmail validates email format correctly', () => {

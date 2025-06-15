@@ -15,6 +15,7 @@ A real-time multiplayer tic-tac-toe game with AI opponents, built with FastAPI (
 ## Tech Stack
 
 ### Backend
+
 - **FastAPI**: Modern, fast web framework for building APIs
 - **WebSockets**: Real-time communication
 - **PostgreSQL**: Database for user and game data
@@ -22,6 +23,7 @@ A real-time multiplayer tic-tac-toe game with AI opponents, built with FastAPI (
 - **SQLAlchemy**: ORM for database operations
 
 ### Frontend
+
 - **React.js**: Modern frontend framework
 - **TypeScript**: Type-safe JavaScript
 - **Vite**: Fast build tool and dev server
@@ -29,6 +31,7 @@ A real-time multiplayer tic-tac-toe game with AI opponents, built with FastAPI (
 - **Tailwind CSS**: Utility-first CSS framework
 
 ### Code Quality
+
 - **Ruff**: Fast Python linter and formatter
 - **pytest**: Testing framework with coverage
 - **Vitest**: Frontend testing framework with coverage
@@ -39,6 +42,7 @@ A real-time multiplayer tic-tac-toe game with AI opponents, built with FastAPI (
 ## Quick Start
 
 ### Prerequisites
+
 - Docker and Docker Compose
 - Python 3.12+ (for local development)
 - Node.js 18+ (for frontend development)
@@ -48,6 +52,7 @@ A real-time multiplayer tic-tac-toe game with AI opponents, built with FastAPI (
 #### Production Deployment (Recommended)
 
 1. Clone and setup environment:
+
 ```bash
 git clone <repository-url>
 cd tictactoe
@@ -56,6 +61,7 @@ cp .env.example .env
 ```
 
 2. Deploy with Docker Compose:
+
 ```bash
 # Start all services (Nginx, FastAPI, PostgreSQL, Redis)
 docker compose up -d
@@ -68,6 +74,7 @@ docker compose logs -f
 ```
 
 **Production Architecture**:
+
 - **Frontend**: Static React app served by Nginx at `http://localhost`
 - **Backend API**: FastAPI accessible via `/api/*` through Nginx reverse proxy
 - **WebSockets**: Real-time features via `/ws/*` through Nginx
@@ -86,6 +93,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
 
 **Development URLs**:
+
 - Frontend dev server: `http://localhost:3000` (Vite with HMR)
 - Production preview: `http://localhost:8080` (Nginx)
 - Backend API: `http://localhost:8000` (direct FastAPI access)
@@ -95,16 +103,19 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ### Development Setup
 
 1. Install Python dependencies:
+
 ```bash
 uv pip install -e ".[dev]"
 ```
 
 2. Install pre-commit hooks:
+
 ```bash
 pre-commit install
 ```
 
 3. Set up the database:
+
 ```bash
 # Start PostgreSQL and Redis
 docker compose up database redis -d
@@ -114,11 +125,13 @@ alembic upgrade head
 ```
 
 4. Start the backend:
+
 ```bash
 uvicorn main:app --reload
 ```
 
 5. Start the frontend (in another terminal):
+
 ```bash
 cd public
 npm install
@@ -165,11 +178,13 @@ tictactoe/
 ## WebSocket Events
 
 ### Client → Server
+
 - `join_game`: Join a specific game
 - `make_move`: Make a move in the game
 - `leave_game`: Leave the current game
 
 ### Server → Client
+
 - `game_update`: Game state changed
 - `game_list_update`: Active games list updated
 - `player_joined`: New player joined the game
@@ -178,6 +193,7 @@ tictactoe/
 ## Development Commands
 
 ### Code Quality
+
 ```bash
 # Run linting
 ruff check .
@@ -193,6 +209,7 @@ pytest --cov=app --cov-report=html
 ```
 
 ### Database
+
 ```bash
 # Create migration
 alembic revision --autogenerate -m "description"
@@ -225,7 +242,7 @@ This project uses pre-commit hooks to maintain code quality:
 ```bash
 # Pre-commit hooks automatically run on every commit:
 # ✅ ruff-check      - Python linting
-# ✅ ruff-format     - Python code formatting  
+# ✅ ruff-format     - Python code formatting
 # ✅ pytest-coverage - Python tests (80% coverage required)
 # ✅ eslint-check    - Frontend TypeScript/React linting
 # ✅ vitest-coverage - Frontend tests (30% coverage required)
@@ -257,6 +274,7 @@ The `vitest-coverage` pre-commit hook ensures frontend test coverage meets quali
 ```
 
 **Key Features:**
+
 - **Non-interactive mode**: Uses `vitest run` to prevent hanging in CI/pre-commit
 - **Coverage enforcement**: Requires minimum 30% frontend coverage
 - **Automatic execution**: Runs on every commit that touches frontend files
@@ -302,6 +320,7 @@ public/src/__tests__/
 #### Troubleshooting Frontend Tests
 
 **Pre-commit hook hanging:**
+
 ```bash
 # Fixed: Was using 'vitest' instead of 'vitest run'
 # vitest runs in watch mode by default, causing pre-commit to hang
@@ -309,6 +328,7 @@ public/src/__tests__/
 ```
 
 **Coverage below 30%:**
+
 ```bash
 # Check current coverage:
 cd public && npx vitest run --coverage
@@ -318,6 +338,7 @@ cd public && npx vitest run --coverage
 ```
 
 **Mock setup issues:**
+
 ```bash
 # Ensure proper mocking in test files:
 vi.mock('../services/api', () => ({
@@ -337,11 +358,13 @@ Complete VS Code debugging configuration is provided:
 3. **Frontend Debugging**: Debug React components and TypeScript
 
 **Available debug configurations:**
+
 - `Python: Debug Backend (Container)` - Attach to running Docker container
 - `Python: Debug Backend (Local)` - Debug local Python process
 - `TypeScript: Debug Frontend` - Debug React app in Chrome
 
 **VS Code Tasks:**
+
 - `Start Debug Container` - Launch containers with debugpy
 - `Stop Debug Container` - Stop all containers
 - `Build Backend (Debug)` - Rebuild backend with debug support
@@ -350,6 +373,7 @@ Complete VS Code debugging configuration is provided:
 ### Development Environment
 
 **Hot Reload Setup:**
+
 ```bash
 # Start development environment with hot reload:
 docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
@@ -360,6 +384,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ```
 
 **Port Configuration:**
+
 - `3000` - Frontend development server (Vite)
 - `8000` - Backend API (FastAPI)
 - `8080` - Production preview (Nginx)
@@ -368,6 +393,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 - `5678` - Python debugger (debugpy)
 
 **Volume Mounting:**
+
 - `./app:/app/app:rw` - Backend source code
 - `./public:/app/public:rw` - Frontend source code
 - Database and Redis data persist in Docker volumes
@@ -383,6 +409,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
 ### Testing Strategy
 
 **Backend Testing (80% coverage required):**
+
 ```bash
 # Run specific test files:
 pytest tests/test_ai_service.py -v
@@ -394,6 +421,7 @@ pytest --cov=app --cov-report=html
 ```
 
 **Frontend Testing (30% coverage required):**
+
 ```bash
 # Test specific components:
 cd public
@@ -408,6 +436,7 @@ npm run test:coverage -- --run
 ```
 
 **Pre-commit Testing:**
+
 ```bash
 # Automatically runs on commit:
 # - Backend: pytest with 80% coverage minimum
@@ -419,6 +448,7 @@ pre-commit run --all-files
 ```
 
 **Integration Testing:**
+
 ```bash
 # Test Docker setup:
 ./test-docker.sh
@@ -430,15 +460,18 @@ python test_auth.py
 ### Common Development Issues
 
 **"Failed to load games" error:**
+
 - ✅ Fixed: Enum mismatch in database queries
 - Games endpoint now uses string values instead of enum names
 
 **Pre-commit hooks failing:**
+
 - Python issues: Check `uv` virtual environment activation
 - Frontend issues: Run `cd public && npx vitest run --coverage` to test manually
 - Coverage issues: Ensure tests cover 30% frontend and 80% backend coverage
 
 **Docker debugging not working:**
+
 - Ensure debugpy port (5678) is exposed
 - Check volume mounts are correct
 - Verify containers are running: `docker ps`

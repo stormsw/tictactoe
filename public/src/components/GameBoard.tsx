@@ -113,8 +113,11 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameId, onLeaveGame }) => {
     if (game.status === 'completed') {
       if (game.winner_id) {
         const winnerSymbol = getPlayerSymbol(game.winner_id);
-        const winnerName = game.winner_id === game.player1_id ? 'Player 1' : 
-                          (game.player2_type === 'ai' ? 'Computer' : 'Player 2');
+        const isPlayer1Winner = game.winner_id === game.player1_id;
+        let winnerName = 'Player 1';
+        if (!isPlayer1Winner) {
+          winnerName = game.player2_type === 'ai' ? 'Computer' : 'Player 2';
+        }
         return `${winnerName} (${winnerSymbol}) wins!`;
       } else {
         return "It's a draw!";
@@ -152,7 +155,28 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameId, onLeaveGame }) => {
   if (!game) {
     return (
       <div className="text-center">
-        <p className="text-red-600">Game not found</p>
+        <p className="text-red-600">{error || 'Game not found'}</p>
+        <button
+          onClick={onLeaveGame}
+          className="mt-4 bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
+        >
+          Back to Lobby
+        </button>
+      </div>
+    );
+  }
+
+  // Additional safety check for board_state
+  if (!game.board_state || !Array.isArray(game.board_state)) {
+    return (
+      <div className="text-center">
+        <p className="text-red-600">Invalid game data</p>
+        <button
+          onClick={() => loadGame()}
+          className="mt-4 bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 mr-2"
+        >
+          Retry
+        </button>
         <button
           onClick={onLeaveGame}
           className="mt-4 bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
@@ -201,9 +225,9 @@ const GameBoard: React.FC<GameBoardProps> = ({ gameId, onLeaveGame }) => {
 
         {/* Game Board */}
         <div className="game-board mx-auto mb-6">
-          {game.board_state.map((cell: string, index: number) => (
+          {game.board_state?.map((cell: string, index: number) => (
             <button
-              key={`cell-${index}`}
+              key={`game-${game.id}-cell-${index}`}
               className={`game-cell ${cell.toLowerCase()} ${
                 canMakeMove(index) ? 'hover:bg-gray-100' : ''
               }`}

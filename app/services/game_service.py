@@ -53,7 +53,7 @@ class GameService:
         """Get list of active games"""
         games = (
             db.query(Game)
-            .filter(Game.status.in_(["waiting", "in_progress"]))
+            .filter(Game.status.in_([GameStatus.WAITING, GameStatus.IN_PROGRESS]))
             .order_by(Game.created_at.desc())
             .limit(limit)
             .all()

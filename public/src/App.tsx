@@ -6,6 +6,7 @@ import GameLobby from './components/GameLobby';
 import GameBoard from './components/GameBoard';
 import Leaderboard from './components/Leaderboard';
 import Navigation from './components/Navigation';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function App() {
   const { user, isAuthenticated, checkAuth } = useAuthStore();
@@ -63,10 +64,27 @@ function App() {
           )}
           
           {currentView === 'game' && currentGameId && (
-            <GameBoard 
-              gameId={currentGameId} 
-              onLeaveGame={handleLeaveGame}
-            />
+            <ErrorBoundary fallback={
+              <div className="text-center py-12">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Game Error
+                </h3>
+                <p className="text-sm text-gray-500 mb-4">
+                  There was an error loading the game board.
+                </p>
+                <button
+                  onClick={handleLeaveGame}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+                >
+                  Back to Lobby
+                </button>
+              </div>
+            }>
+              <GameBoard 
+                gameId={currentGameId} 
+                onLeaveGame={handleLeaveGame}
+              />
+            </ErrorBoundary>
           )}
           
           {currentView === 'leaderboard' && (
