@@ -65,6 +65,13 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 
+# Frontend coverage files
+public/coverage/
+public/lcov.info
+public/*.lcov
+lcov.info
+*.lcov
+
 # Node.js (for frontend)
 public/node_modules/
 public/npm-debug.log*

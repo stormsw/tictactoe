@@ -29,3 +29,10 @@ repos:
         language: system
         files: ^public/.*\.(js|jsx|ts|tsx)$
         require_serial: true
+
+      - id: vitest-coverage
+        name: vitest-coverage
+        entry: bash -c 'cd public && npx vitest run --coverage'
+        language: system
+        files: ^public/.*\.(js|jsx|ts|tsx)$
+        require_serial: true
