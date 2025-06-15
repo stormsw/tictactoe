@@ -1,0 +1,60 @@
+# Backend Dockerfile with multi-stage build
+FROM python:3.12-slim AS base
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+# Install system dependencies and uv
+RUN apt-get update && apt-get install -y \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -LsSf https://astral.sh/uv/install.sh | sh \
+    && mv /root/.local/bin/uv /usr/local/bin/uv
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements, README and install Python dependencies with uv
+COPY pyproject.toml uv.lock README.md ./
+RUN uv sync --frozen --no-dev --compile-bytecode
+
+# Copy application code
+COPY app/ ./app/
+COPY main.py ./
+
+# Development stage
+FROM base AS development
+# Install dev dependencies
+RUN uv sync --dev --compile-bytecode
+USER root
+
+# Expose debugpy port
+EXPOSE 5678
+
+# Start with debugpy for VS Code debugging
+CMD ["uv", "run", "python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "--wait-for-client", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# Migration stage - lightweight for running Alembic only
+FROM base AS migration
+# Only copy migration files and alembic config
+COPY migrations/ ./migrations/
+COPY alembic.ini ./
+# Run as root for simplicity in migration container
+CMD ["uv", "run", "alembic", "upgrade", "head"]
+
+# Production stage
+FROM base AS production
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash appuser && \
+    chown -R appuser:appuser /app
+USER appuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health || exit 1
+
+# Start application
+CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

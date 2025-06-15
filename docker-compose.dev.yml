@@ -1,0 +1,57 @@
+# Development override for docker-compose
+# Use with: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  # Development backend with debugpy support
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+      target: development
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+    volumes:
+      # Mount only the source directories for hot reload
+      - ./app:/app/app:rw              # Mount app directory for hot reload
+      - ./main.py:/app/main.py:rw      # Mount main.py for hot reload
+      - ./pyproject.toml:/app/pyproject.toml:ro  # Mount config (read-only)
+      # Exclude .venv and other build artifacts by not mounting them
+    ports:
+      - "5678:5678"  # Expose debugpy port for VS Code
+      - "8000:8000"  # Expose backend port for direct access
+    # Use the default CMD from Dockerfile development target (includes debugpy)
+    # No command override - letting Dockerfile handle debugpy configuration
+    
+  # Development database with easier access
+  db:
+    ports:
+      - "5432:5432"  # Expose PostgreSQL port for direct access
+
+  # Expose internal services for development (optional - comment out if ports conflict)
+  # database:
+  #   ports:
+  #     - "5432:5432"
+
+  # redis:
+  #   ports:
+  #     - "6379:6379"
+
+  # Development frontend with live reload
+  frontend-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      target: development
+    # ports:
+    #   - "3000:3000"
+    volumes:
+      - ./public:/app
+    command: npm run dev
+    networks:
+      - internal
+
+  # Nginx for development
+  frontend:
+    ports:
+      - "4080:80"  # Same port as production for consistency
