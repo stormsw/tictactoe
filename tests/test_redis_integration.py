@@ -1,6 +1,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
+import pytest_asyncio
 
 from app.services.redis_service import RedisManager
 from app.services.websocket_service import WebSocketManager
@@ -9,7 +10,7 @@ from app.services.websocket_service import WebSocketManager
 class TestRedisIntegration:
     """Test Redis integration with WebSocket manager"""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def redis_manager(self):
         """Create a mock Redis manager for testing"""
         with patch("app.services.redis_service.redis") as mock_redis:
@@ -32,8 +33,8 @@ class TestRedisIntegration:
             manager.redis = mock_client
             yield manager
 
-    @pytest.fixture
-    def websocket_manager(self, redis_manager):
+    @pytest_asyncio.fixture
+    async def websocket_manager(self, redis_manager):
         """Create WebSocket manager with Redis"""
         return WebSocketManager(redis_manager)
 
