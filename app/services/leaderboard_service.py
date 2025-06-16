@@ -20,9 +20,7 @@ class LeaderboardService:
         stats_query = (
             db.query(UserStats, User)
             .join(User)
-            .filter(
-                UserStats.games_played >= 5  # Minimum games for leaderboard
-            )
+            .filter(UserStats.games_played >= 5)  # Minimum games for leaderboard
             .order_by(desc(UserStats.win_rate), desc(UserStats.games_played))
             .limit(limit)
             .all()
