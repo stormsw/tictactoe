@@ -3,13 +3,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.models.game import (
-    Game,
-    GameListItem,
-    GameObserver,
-    GameStatus,
-    PlayerType,
-)
+from app.models.game import Game, GameListItem, GameObserver, GameStatus, PlayerType
 from app.models.leaderboard import UserStats
 from app.models.user import User
 from app.services.ai_service import AIService
@@ -254,7 +248,12 @@ class GameService:
             if not stats:
                 stats = UserStats(user_id=user_id)
                 db.add(stats)
-
+                # TODO: when creating a new user, set initial stats
+                stats.games_played = 0
+                stats.games_won = 0
+                stats.games_lost = 0
+                stats.games_drawn = 0
+                stats.total_moves = 0
             stats.games_played += 1
             stats.total_moves += game.total_moves
 

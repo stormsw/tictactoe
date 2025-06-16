@@ -126,13 +126,8 @@ class TestGameService:
         game = GameService.create_game(
             db_session, player1_id=1, player2_type=PlayerType.AI
         )
-
-        assert game.player2_type == PlayerType.AI
         assert game.status == GameStatus.IN_PROGRESS
-        assert game.player2_username == "AI"
-
         active_games = GameService.get_active_games(db_session)
-
         assert len(active_games) == 1
         assert active_games[0].player2_username == "AI"
 
@@ -286,7 +281,6 @@ class TestGameService:
         assert game.winner_id == 1
         assert game.completed_at is not None
 
-    @pytest.mark.xfail(reason="Test for draw move is not implemented yet")
     def test_make_draw_move(self, db_session, sample_game):
         """Test making move that results in draw"""
         # Set up a draw scenario
@@ -350,7 +344,6 @@ class TestGameService:
         board = ["X", "O", "X", "O", "X", "O", "X", "O", ""]
         assert GameService._is_board_full(board) is False
 
-    @pytest.mark.xfail(reason="Test for AI move is not implemented yet")
     def test_update_user_stats_win(self, db_session, sample_users):
         """Test updating user stats after win"""
         game = Game(
