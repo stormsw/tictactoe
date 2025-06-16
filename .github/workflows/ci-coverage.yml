@@ -6,6 +6,12 @@ on:
   pull_request:
     branches: [master, develop]
 
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+  checks: write
+
 env:
   NODE_VERSION: "18"
   PYTHON_VERSION: "3.12"
