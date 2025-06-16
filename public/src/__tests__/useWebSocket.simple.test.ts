@@ -23,10 +23,19 @@ describe('useWebSocket Hook (Simple)', () => {
     });
 
     test('hook can be called', () => {
-        const { result } = renderHook(() => useWebSocket());
+        const { result } = renderHook(() => useWebSocket(1));
         
         // Just check that the hook returns an object
         expect(result.current).toBeDefined();
         expect(typeof result.current).toBe('object');
+    });
+
+    test('hook can be called with null userId', () => {
+        const { result } = renderHook(() => useWebSocket(null));
+        
+        // Just check that the hook returns an object
+        expect(result.current).toBeDefined();
+        expect(typeof result.current).toBe('object');
+        expect(result.current.isConnected).toBe(false);
     });
 });
