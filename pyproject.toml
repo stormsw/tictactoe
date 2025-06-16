@@ -19,8 +19,8 @@ dependencies = [
     "passlib[bcrypt]>=1.7.4",
     "psycopg2-binary>=2.9.0",
     "requests>=2.32.4",
+    "httpx>=0.28.1",
 ]
-
 
 
 [tool.ruff]

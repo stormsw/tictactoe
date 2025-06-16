@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,14 +8,26 @@ from fastapi.staticfiles import StaticFiles
 from app.routers import auth, games, leaderboard, websocket
 from app.services.redis_service import RedisManager
 
+# Initialize Redis manager
+redis_manager = RedisManager()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    # Initialize WebSocket manager with Redis
+    websocket.set_websocket_manager(redis_manager)
+    yield
+    # Shutdown
+    await redis_manager.close()
+
+
 app = FastAPI(
     title="Tic-Tac-Toe API",
     description="Real-time multiplayer tic-tac-toe game with AI opponents",
     version="0.1.0",
+    lifespan=lifespan,
 )
-
-# Initialize Redis manager
-redis_manager = RedisManager()
 
 # CORS middleware
 app.add_middleware(
@@ -40,17 +53,6 @@ app.include_router(websocket.router, prefix="/ws", tags=["websocket"])
 # Serve static files (React frontend)
 if os.path.exists("public/dist"):
     app.mount("/", StaticFiles(directory="public/dist", html=True), name="static")
-
-
-@app.on_event("startup")
-async def startup_event():
-    # Initialize WebSocket manager with Redis
-    websocket.set_websocket_manager(redis_manager)
-
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    await redis_manager.close()
 
 
 @app.get("/api/health")
